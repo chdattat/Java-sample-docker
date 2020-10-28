@@ -1,9 +1,19 @@
 pipeline {
     agent any
+    tools {
+        maven "Maven3"
+    }
     stages {
-        stage('Build Application') {
+        stage ('Checkout SCM'){
             steps {
-                sh 'mvn -f pom.xml clean package'
+              checkout([$class: 'GitSCM', branches: [[name: '*/master']],
+    			userRemoteConfigs: [[url: 'https://github.com/chdattat/Java-sample-docker.git']]])
+            }
+        }
+          
+         stage ('Build')  {
+            steps {
+        	    sh "mvn package"
             }
             post {
                 success {
@@ -12,14 +22,12 @@ pipeline {
                 }
             }
         }
-
         stage('Create Tomcat Docker Image'){
             steps {
                 sh "pwd"
                 sh "ls -a"
-                sh "docker build . -t tomcatsamplewebapp:${env.BUILD_ID}"
+                sh "docker build -t webapptest:${env.BUILD_ID} ."
             }
         }
-
     }
 }
